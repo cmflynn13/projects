@@ -1,0 +1,278 @@
+
+# coding: utf-8
+
+# Load dependencies and change number of rows outputed 
+
+# In[1]:
+
+
+import numpy as np
+import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as stats
+pd.options.display.max_rows = 10
+get_ipython().run_line_magic('matplotlib', 'inline')
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
+
+
+# In[3]:
+
+
+df = pd.read_csv("honorsapps.csv",index_col=0)
+
+
+# Load files
+
+# The App Score is built on a number of components including an already scaled and weighted scoring of SAT
+# and/or ACT scores so let's see how the two correlate.
+
+# In[10]:
+
+
+df.dropna(how='all',inplace=True)
+df.reset_index(drop=['Index'],inplace=True)
+df.info()
+
+
+# In[11]:
+
+
+df['App'] = df['App'].fillna('0')
+app = {'?':'0','#VALUE!':'0'}
+df['App'] = df['App'].replace(app)
+
+
+# Establishing naming consistencies
+
+# In[12]:
+
+
+offer = {'OFFER':'Offer','REJECT':'Reject'}
+gender = {'Female':'F','Male':'M','Unknown':'U'}
+
+
+# In[13]:
+
+
+df['Offer'] =df['Offer'].replace(offer)
+df['Gender'] = df['Gender'].replace(gender)
+df['App'] = df['App'].astype(float)
+df.shape
+
+How much data would we lose if we just dump everything that has a missing value? If less than 5%..drop.
+# In[14]:
+
+
+missing=df.isnull().sum().sum()
+def manage_missing(missing):
+    if missing/(df.shape[0]) < 0.05:
+        print('Only {} rows were removed from the dataset.'.format(df.isnull().sum().sum()))
+        return df.dropna(how='any',axis=0,inplace=True)
+    print('Too much data would be lost.')
+manage_missing(missing)
+
+
+# In[15]:
+
+
+df.reset_index(inplace=True)
+
+
+# Visualize the data
+
+# In[16]:
+
+
+sns.distplot(df['App'],bins=15)
+
+
+# In[17]:
+
+
+sns.countplot(df['Offer'],hue=df['Gender'])
+
+
+# In[18]:
+
+
+sns.boxplot(x="Gender",y='App',data=df,orient='v',hue='Gender',palette='Set3')
+
+
+# Transform the data.
+
+# In[19]:
+
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+
+
+# In[20]:
+
+
+df['Gender'] = le.fit_transform(df.Gender.astype(str))
+df['Offer'] = le.fit_transform(df.Offer.astype(str))
+df.dtypes
+df.head()
+
+
+# In[21]:
+
+
+X = df.iloc[:,0:-1].values
+y = df.iloc[:,-1]
+
+
+# Setup pipeline to try out various classification techniques
+
+# In[22]:
+
+
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_validate
+from sklearn.metrics import accuracy_score
+
+
+# In[23]:
+
+
+scaler = StandardScaler()
+
+
+# In[24]:
+
+
+pipeline = Pipeline([
+    ('normalizer',StandardScaler()),
+    ('clf',LogisticRegression())
+])
+pipeline.steps
+
+
+# In[25]:
+
+
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.3,random_state=123)
+print(X_train.shape)
+print(X_test.shape)
+print(y_train.shape)
+print(y_test.shape)
+
+
+# In[26]:
+
+
+scores = cross_validate(pipeline, X_train, y_train)
+scores['test_score'].mean() * 100
+
+
+# Better than just guessing, but needs works. Time to do some cross validation on the pipeline...look for algo with best test_score
+
+# In[27]:
+
+
+clfs = []
+clfs.append(LogisticRegression())
+clfs.append(SVC())
+clfs.append(KNeighborsClassifier(n_neighbors=3))
+clfs.append(DecisionTreeClassifier())
+clfs.append(RandomForestClassifier())
+clfs.append(GradientBoostingClassifier())
+
+
+# In[28]:
+
+
+for classifier in clfs:
+    pipeline.set_params(clf=classifier)
+    scores=cross_validate(pipeline,X_train,y_train)
+    print('xxxxxxxxxxxxxxxxxxx')
+    print(str(classifier))
+    print('xxxxxxxxxxxxxxxxxxx')
+    for key, values in scores.items():
+        print(key,'mean: ',values.mean())
+        print(key,'standard deviation: ',values.std())
+    
+
+
+# #Wow..an improvement of nearly 14% (random state may not be set) with the Decision Tree...time to optimize some more.
+
+# In[34]:
+
+
+dtc = DecisionTreeClassifier()
+
+
+# In[35]:
+
+
+dtc.fit(X_train,y_train)
+
+
+# In[36]:
+
+
+y_pred = dtc.predict(X_test)
+
+
+# In[37]:
+
+
+dtc.score(X_test,y_test)
+
+
+# In[38]:
+
+
+from sklearn.metrics import classification_report
+
+
+# In[39]:
+
+
+print(classification_report(y_test,y_pred))
+
+
+# In[40]:
+
+
+from sklearn.metrics import confusion_matrix
+
+
+# In[41]:
+
+
+confusion_matrix(y_test,y_pred)
+
+
+# In[42]:
+
+
+y_pred_prob = dtc.predict_proba(X_test)[:,1]
+
+
+# In[43]:
+
+
+from sklearn.metrics import roc_curve
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
+plt.plot([0, 1], [0, 1], 'k--')
+plt.plot(fpr, tpr)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate') 
+plt.title('ROC Curve')
+plt.show()
+
+
+# Where to go from here?
