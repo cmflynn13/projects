@@ -14,7 +14,7 @@ __Dependencies: numpy, pandas, matplotlib, seaborn, scipy, sklearn, warnings__
 
 - ### Data Analysis
 
-     -  [Pharma Export Data](link): \
+     -  [Pharma Export Data](https://github.com/cmflynn13/projects/blob/master/pharam_export_data/Visualizing%20Pharma%20Export%20Data%20(1).ipynb): \
             - __quick analysis of supply chain data of Antiretroviral and HIV lab shipments to various countries__ \
             - identifies leading line item value shipments and the respective brands and destination countries \
             - identifies percentages of sales due to aforementioned data points \
