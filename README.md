@@ -25,7 +25,7 @@ __Dependencies: numpy, pandas, matplotlib, seaborn, missingo__
 - ### Deep Learning 
 
      - [ ] WIP \
-            - _sequential model__
+            - _sequential model_
           
 
 \
