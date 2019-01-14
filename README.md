@@ -27,7 +27,7 @@ __Dependencies: numpy, pandas, matplotlib, seaborn, missingo__
      - [ ] WIP \
             - __Frontend overhaul_ \
             - HTML, CSS, Javascript \ 
-            - React \
+            - Reacr \            
             - Possibile React VR incorporation
           
 
