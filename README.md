@@ -22,10 +22,13 @@ __Dependencies: numpy, pandas, matplotlib, seaborn, scipy, sklearn, warnings__
 
 __Dependencies: numpy, pandas, matplotlib, seaborn, missingo__
 
-- ### Deep Learning 
+- ### LLC Website Revamp 
 
      - [ ] WIP \
-            - _sequential model_
+            - __Frontend overhaul_ \
+            - HTML, CSS, Javascript \ 
+            - React \
+            - Possibile React VR incorporation
           
 
 \
